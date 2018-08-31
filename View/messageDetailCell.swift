@@ -36,18 +36,30 @@ class messageDetailCell: UITableViewCell {
 
     func configureCell(messageDetail: MessageDetail){
         self.messageDetail = messageDetail
-        let recipientData = Database.database().reference().child("users").child(messageDetail.recipient)
+        let recipientData = Database.database().reference().child("Users").child(messageDetail.recipient)
         recipientData.observeSingleEvent(of: .value, with: {(snapshot) in
             
             let data  = snapshot.value as! Dictionary<String, AnyObject>
             let username = data["username"]
-            let userImg = data["userImg"]
+            let userImg = NSURL(string: data["prof-pic"] as! String)
+            print("user img: ")
+            //gotta fix this
+
+            
+            var userImgString = data["prof-pic"]
+            print("userImgString: ")
+            print(userImgString)
+            if(data["prof-pic"] == nil)
+            {
+                userImgString = "https://firebasestorage.googleapis.com/v0/b/plusonetest-2143.appspot.com/o/profile-pics%2Fdbooth?alt=media&token=23b1cd0f-980a-4a4b-9038-21387a27fcf5" as AnyObject
+            }
             self.recipientname.text = username as? String
-            let ref = Storage.storage().reference(forURL: userImg as! String)
-            URLSession.shared.dataTask(with: userImg as! URL)
+            let ref = Storage.storage().reference(forURL: userImgString as! String)
+            URLSession.shared.dataTask(with: userImg! as URL)
             ref.getData(maxSize: 100000, completion: { (data, error) in
-                
+                //not loading image since image exceeds maximum size
                 if error != nil{
+                    print(error)
                     print("could not load image")
                 } else{
                     if let imgData = data {

@@ -31,7 +31,7 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
         tableView.delegate = self
         tableView.dataSource = self
         // Do any additional setup after loading the view.
-        Database.database().reference().child("users").child(currentUser!).child("messages").observe(.value, with: { (snapshot) in
+        Database.database().reference().child("Users").child(currentUser!).child("messages").observe(.value, with: { (snapshot) in
             
             if let snapshot = snapshot.children.allObjects as? [DataSnapshot]{
                 self.messageDetail.removeAll()

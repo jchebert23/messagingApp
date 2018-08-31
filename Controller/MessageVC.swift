@@ -16,9 +16,7 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
     @IBOutlet weak var sendButoon: UIButton!
     @IBOutlet weak var messageField: UITextField!
     @IBOutlet weak var tableView: UITableView!
-    //NEW STUFF
-    var messageData = [String]()
-    //END OF NEW STUFF
+
     var messageId: String!
     
     var messages = [Message]()
@@ -42,10 +40,13 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
         
         tableView.estimatedRowHeight = 300
         
+        
+        //if the conversation existed in the past, load the data of the previous messages
         if messageId != "" && messageId != nil {
             loadData()
         }
         
+        //i guess this brings up the keyboard?
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
@@ -93,32 +94,46 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
+
         let message = messages[indexPath.row]
-      
-        
-        if let cell = tableView.dequeueReusableCell(withIdentifier: "Message") as? MessagesCell {
+ 
+        //goes through each message object and configures it to a cell, config cell function is in MessagesCell class
+         let cell = tableView.dequeueReusableCell(withIdentifier: "Message") as! MessagesCell
             cell.configCell(message: message)
             return cell
-        } else{
+        /*
+        else{
+            print("here")
             return MessagesCell()
         }
+ */
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 130
+        return 40
     }
     
     func loadData(){
+        //loads all messages from messageId
         Database.database().reference().child("messages").child(messageId).observe(.value , with: { (snapshot) in
             
             if let snapshot = snapshot.children.allObjects as? [DataSnapshot] {
+                //clears out anything in messages variable
                 self.messages.removeAll()
                 
+                //basically this grabs all the messages associated with the messageID (should probably be called conversation ID)
+                //stores it in this array of Message objects called messages
                 for data in snapshot{
+                    print("Data")
+                    print(data)
                     if let postDict = data.value as? Dictionary<String, AnyObject> {
+                
                         let key = data.key
                         let post = Message(messageKey: key, postData: postDict)
+                        print("key: ")
+                        print(key)
+                        print("data: ")
+                        print(data)
                         self.messages.append(post)
                     }
                 }
@@ -156,25 +171,31 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
                     "recipient": currentUser as AnyObject
                 ]
                 
-                //repeating myself
+                //creating message id
                 
                 messageId = Database.database().reference().child("messages").childByAutoId().key
                 
+                //creating then tree under
                 let firebaseMessage = Database.database().reference().child("messages").child(messageId).childByAutoId()
                 
+                //this creates the message and sender under the message id
                 firebaseMessage.setValue(post)
                 
-                let recipentMessage = Database.database().reference().child("users").child(recipient).child("messages").child(messageId)
+                //under new users tab, userID->messages->messageID
+                let recipentMessage = Database.database().reference().child("Users").child(recipient).child("messages").child(messageId)
                 
+                //this creates tree under messageID (last message, recipient)
                 recipentMessage.setValue(recipientMessage)
                 
-                //maybe change this 27:51, episode 5
-                let userMessage = Database.database().reference().child("users").child(currentUser!).child("messages").child(messageId)
+                //does same thing as above, two lines of code above, but just makes tree for the user
+                let userMessage = Database.database().reference().child("Users").child(currentUser!).child("messages").child(messageId)
                 
                 userMessage.setValue(message)
                 
                 loadData()
-            } else if messageId != ""{
+            }
+            //basically if this is not the first message between two people, it doesn't create a new message ID
+            else if messageId != ""{
                 let post: Dictionary <String, AnyObject> = [
                     "message": messageField.text as AnyObject,
                     "sender": recipient as AnyObject
@@ -189,18 +210,17 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
                     "lastmessage": messageField.text as AnyObject,
                     "recipient": currentUser as AnyObject
                 ]
-                //same thing as above but no messageId
+                //same thing as above but doesn't create a messageId (basically a conversation id)
                 
                 let firebaseMessage = Database.database().reference().child("messages").child(messageId).childByAutoId()
                 
                 firebaseMessage.setValue(post)
                 
-                let recipentMessage = Database.database().reference().child("users").child(recipient).child("messages").child(messageId)
+                let recipentMessage = Database.database().reference().child("Users").child(recipient).child("messages").child(messageId)
                 
                 recipentMessage.setValue(recipientMessage)
                 
-                //maybe change this 27:51, episode 5
-                let userMessage = Database.database().reference().child("users").child(currentUser!).child("messages").child(messageId)
+                let userMessage = Database.database().reference().child("Users").child(currentUser!).child("messages").child(messageId)
                 
                 userMessage.setValue(message)
                 
