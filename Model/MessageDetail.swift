@@ -15,6 +15,8 @@ class MessageDetail{
     private var _recipient: String!
     private var _messageKey: String!
     private var _messageRef: DatabaseReference!
+    var _members = [String]()
+    var _groupName: String!
     var currentUser = KeychainWrapper.standard.string(forKey: "uid")
     var recipient: String{
         return _recipient
@@ -28,6 +30,7 @@ class MessageDetail{
         return _messageRef
     }
     
+    
     init(recipient: String){
         _recipient=recipient
     }
@@ -39,6 +42,24 @@ class MessageDetail{
             _recipient = recipient
         }
         
+        if let groupName = messageData["groupName"] as? String{
+            _groupName = groupName
+        }
+        
+        if(_groupName != "" && _groupName != nil)
+        {
+        Database.database().reference().child("Groups").child(recipient).observe(.value , with: { (snapshot) in
+            let value = snapshot.value as? NSDictionary
+            print(value)
+            
+            print(value!.object(forKey: "members")!)
+            self._members = ((value!.object(forKey: "members")!) as? [String])!
+            print("LINE 57")
+            print(self._members)
+            }
+            )
+        }
         _messageRef = Database.database().reference().child("recipient").child(_messageKey)
+
     }
 }

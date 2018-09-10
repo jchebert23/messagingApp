@@ -19,9 +19,11 @@ class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UI
     var filteredDate = [Search]()
     var isSearching = false
     var detail: Search!
+    var members = [String]()
+    var groupName: String!
     var recipient: String!
     var messageId: String!
-    var debugPrint: Bool = true
+    var debugPrint: Bool = false
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -31,36 +33,43 @@ class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UI
         searchBar.delegate = self
         
         searchBar.returnKeyType = UIReturnKeyType.done
+        
+        //grabbing list of users
+        
         Database.database().reference().child("Users").observe(.value , with: { (snapshot) in
         
             
         let value = snapshot.value as? NSDictionary
-        if(self.debugPrint)
-        {
-            print("Line 41")
-            }
+
                 self.searchDetail.removeAll()
-                if(self.debugPrint)
-                {
-                    print("Line 44")
-                }
+
+            
                 for data in value!{
-                    if(self.debugPrint)
-                    {
-                        print("Line 49")
-                    }
                     let postDict: NSDictionary = data.value as! NSDictionary
-                        if(self.debugPrint)
-                        {
-                            print("Line 54")
-                        }
                         let key = data.key
                         let post = Search(userKey: key as! String, postData: postDict as! Dictionary<String, AnyObject>)
                         self.searchDetail.append(post)
                 }
             
-            self.tableView.reloadData()
+           
         })
+        
+        //grabbing list of group names
+        
+        
+        Database.database().reference().child("Groups").observe(.value , with: { (snapshot) in
+            let value = snapshot.value as? NSDictionary
+            for data in value!{
+
+                let postDict: NSDictionary = data.value as! NSDictionary
+                let key = data.key
+                let post = Search(userKey: key as! String, postData: postDict as! Dictionary<String, AnyObject>)
+                self.searchDetail.append(post)
+            }
+            
+        })
+ 
+         self.tableView.reloadData()
         // Do any additional setup after loading the view.
     }
 
@@ -68,16 +77,14 @@ class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UI
         if let destionViewController = segue.destination as? MessageVC {
             destionViewController.recipient = recipient
             destionViewController.messageId = messageId
+            destionViewController.members = members
+            destionViewController.groupName = groupName
         }
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
-    
-
-    
-
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if isSearching{
@@ -108,13 +115,14 @@ class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UI
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if isSearching {
             recipient = filteredDate[indexPath.row].userKey
+            members = filteredDate[indexPath.row]._members
+            groupName = filteredDate[indexPath.row]._groupName
         }else{
             recipient = searchDetail[indexPath.row].userKey
+            members = searchDetail[indexPath.row]._members
+            groupName = searchDetail[indexPath.row]._groupName
         }
-        if(self.debugPrint)
-        {
-            print("Line 116")
-        }
+
         performSegue(withIdentifier: "toMessage", sender: nil)
     }
     

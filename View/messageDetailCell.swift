@@ -36,19 +36,33 @@ class messageDetailCell: UITableViewCell {
 
     func configureCell(messageDetail: MessageDetail){
         self.messageDetail = messageDetail
-        let recipientData = Database.database().reference().child("Users").child(messageDetail.recipient)
+        //this grabs information from recipient to get their profile picture
+        var recipientData = Database.database().reference().child("Users").child(messageDetail.recipient)
+        if(messageDetail._groupName != "" && messageDetail._groupName != nil)
+        {
+            print("line 43")
+        recipientData = Database.database().reference().child("Groups").child(messageDetail.recipient)
+        }
         recipientData.observeSingleEvent(of: .value, with: {(snapshot) in
-            
             let data  = snapshot.value as! Dictionary<String, AnyObject>
-            let username = data["username"]
-            let userImg = NSURL(string: data["prof-pic"] as! String)
+            var username = data["username"]
+            if(messageDetail._groupName != "" && messageDetail._groupName != nil)
+            {
+                username = data["name"]
+            }
+            var temp = data["prof-pic"]
+            if(data["prof-pic"] == nil)
+            {
+                temp = "https://firebasestorage.googleapis.com/v0/b/plusonetest-2143.appspot.com/o/profile-pics%2Fdbooth?alt=media&token=23b1cd0f-980a-4a4b-9038-21387a27fcf5" as AnyObject
+            }
+
+            let userImg = NSURL(string: temp as! String)
             print("user img: ")
             //gotta fix this
-
+            
             
             var userImgString = data["prof-pic"]
             print("userImgString: ")
-            print(userImgString)
             if(data["prof-pic"] == nil)
             {
                 userImgString = "https://firebasestorage.googleapis.com/v0/b/plusonetest-2143.appspot.com/o/profile-pics%2Fdbooth?alt=media&token=23b1cd0f-980a-4a4b-9038-21387a27fcf5" as AnyObject
@@ -59,7 +73,7 @@ class messageDetailCell: UITableViewCell {
             ref.getData(maxSize: 100000, completion: { (data, error) in
                 //not loading image since image exceeds maximum size
                 if error != nil{
-                    print(error)
+
                     print("could not load image")
                 } else{
                     if let imgData = data {

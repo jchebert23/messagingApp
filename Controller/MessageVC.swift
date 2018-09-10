@@ -21,6 +21,10 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
     
     var messages = [Message]()
     
+    var members = [String]()
+    
+    var groupName: String!
+    
     var message: Message!
     
     var currentUser = KeychainWrapper.standard.string(forKey: "uid")
@@ -28,6 +32,8 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
     var recipient: String!
 
     override func viewDidLoad() {
+        print(members)
+        print(groupName)
         super.viewDidLoad()
         //new stuff
         let nibName = UINib(nibName: "PostCell", bundle: nil)
@@ -101,12 +107,7 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
          let cell = tableView.dequeueReusableCell(withIdentifier: "Message") as! MessagesCell
             cell.configCell(message: message)
             return cell
-        /*
-        else{
-            print("here")
-            return MessagesCell()
-        }
- */
+
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -127,7 +128,6 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
                     print("Data")
                     print(data)
                     if let postDict = data.value as? Dictionary<String, AnyObject> {
-                
                         let key = data.key
                         let post = Message(messageKey: key, postData: postDict)
                         print("key: ")
@@ -158,38 +158,63 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
             if messageId == nil {
                 let post: Dictionary <String, AnyObject> = [
                     "message": messageField.text as AnyObject,
-                    "sender": recipient as AnyObject
+                    "sender": currentUser as AnyObject,
+                    "group": recipient as AnyObject,
+                    "groupName": groupName as AnyObject
                 ]
                 
-                let message: Dictionary <String, AnyObject> = [
+                var message: Dictionary <String, AnyObject> = [
                     "lastmessage": messageField.text as AnyObject,
-                    "recipient": recipient as AnyObject
+                    "recipient": recipient as AnyObject,
+                    "groupName": groupName as AnyObject
                 ]
                 
-                let recipientMessage: Dictionary <String, AnyObject> = [
+                let recipientMessage2: Dictionary <String, AnyObject> = [
                     "lastmessage": messageField.text as AnyObject,
-                    "recipient": currentUser as AnyObject
+                    "recipient": recipient as AnyObject,
+                    "groupName": groupName as AnyObject
                 ]
                 
                 //creating message id
                 
                 messageId = Database.database().reference().child("messages").childByAutoId().key
-                
+
                 //creating then tree under
                 let firebaseMessage = Database.database().reference().child("messages").child(messageId).childByAutoId()
-                
+                 print("Line 181")
                 //this creates the message and sender under the message id
+                print("POST")
+                print(post)
                 firebaseMessage.setValue(post)
-                
+                if(members != [])
+                {
+                    ////ADD CODE HERE ABOUT ASSOCIATING MESSAGE ID with group name
+                    
+                    ////
+                    for member in members {
+                        print("Line 190")
+                        if(member != currentUser)
+                        {
+                            let recipientMessage = Database.database().reference().child("Users").child(member).child("messages").child(messageId)
+                            print("Line 193")
+                            recipientMessage.setValue(recipientMessage2)
+                        }
+                    }
+                }
+                else
+                {
+ 
+                    let recipentMessage = Database.database().reference().child("Users").child(recipient).child("messages").child(messageId)
+                    print("Line 202")
+                    recipentMessage.setValue(recipientMessage2)
+                }
                 //under new users tab, userID->messages->messageID
-                let recipentMessage = Database.database().reference().child("Users").child(recipient).child("messages").child(messageId)
-                
-                //this creates tree under messageID (last message, recipient)
-                recipentMessage.setValue(recipientMessage)
                 
                 //does same thing as above, two lines of code above, but just makes tree for the user
                 let userMessage = Database.database().reference().child("Users").child(currentUser!).child("messages").child(messageId)
                 
+                
+                print("Line 216")
                 userMessage.setValue(message)
                 
                 loadData()
@@ -198,17 +223,21 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
             else if messageId != ""{
                 let post: Dictionary <String, AnyObject> = [
                     "message": messageField.text as AnyObject,
-                    "sender": recipient as AnyObject
+                    "sender": currentUser as AnyObject,
+                    "group": recipient as AnyObject,
+                    "groupName": groupName as AnyObject
                 ]
                 
-                let message: Dictionary <String, AnyObject> = [
+                var message: Dictionary <String, AnyObject> = [
                     "lastmessage": messageField.text as AnyObject,
-                    "recipient": recipient as AnyObject
+                    "recipient": recipient as AnyObject,
+                    "groupName": groupName as AnyObject
                 ]
                 
-                let recipientMessage: Dictionary <String, AnyObject> = [
+                let recipientMessage2: Dictionary <String, AnyObject> = [
                     "lastmessage": messageField.text as AnyObject,
-                    "recipient": currentUser as AnyObject
+                    "recipient": recipient as AnyObject,
+                    "groupName": groupName as AnyObject
                 ]
                 //same thing as above but doesn't create a messageId (basically a conversation id)
                 
@@ -216,10 +245,26 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
                 
                 firebaseMessage.setValue(post)
                 
+                if(members != [])
+                {
+
+                    for member in members {
+                        if(member != currentUser)
+                        {
+                            print("MEMBER")
+                            print(member)
+                            print("Line 243!")
+                            let recipientMessage = Database.database().reference().child("Users").child(member).child("messages").child(messageId)
+                            recipientMessage.setValue(recipientMessage2)
+                        }
+                    }
+                }
+                else
+                {
                 let recipentMessage = Database.database().reference().child("Users").child(recipient).child("messages").child(messageId)
                 
-                recipentMessage.setValue(recipientMessage)
-                
+                recipentMessage.setValue(recipientMessage2)
+                }
                 let userMessage = Database.database().reference().child("Users").child(currentUser!).child("messages").child(messageId)
                 
                 userMessage.setValue(message)

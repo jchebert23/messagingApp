@@ -20,6 +20,10 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     var detail: MessageDetail!
     
+    var groupName: String!
+    
+    var members = [String]()
+    
     var currentUser = KeychainWrapper.standard.string(forKey: "uid")
     
     var recipient: String!
@@ -27,10 +31,12 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
     var messageId: String!
     
     override func viewDidLoad() {
+        print("currentUser")
+        print(currentUser)
         super.viewDidLoad()
         tableView.delegate = self
         tableView.dataSource = self
-        // Do any additional setup after loading the view.
+        // getting all previous conversations
         Database.database().reference().child("Users").child(currentUser!).child("messages").observe(.value, with: { (snapshot) in
             
             if let snapshot = snapshot.children.allObjects as? [DataSnapshot]{
@@ -41,6 +47,8 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
                     if let messageDict = data.value as? Dictionary<String, AnyObject> {
                         
                         let key = data.key
+                        print(key)
+                        print(messageDict)
                         let info = MessageDetail(messageKey: key, messageData: messageDict)
                         self.messageDetail.append(info)
                     }
@@ -78,6 +86,10 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
         
         messageId = messageDetail[indexPath.row].messageRef.key
         
+        groupName = messageDetail[indexPath.row]._groupName
+        
+        members = messageDetail[indexPath.row]._members
+        
         performSegue(withIdentifier: "toMessages", sender: nil)
     }
     
@@ -85,6 +97,8 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
         if let destinationViewController = segue.destination as? MessageVC{
             destinationViewController.recipient = recipient
             destinationViewController.messageId = messageId
+            destinationViewController.groupName = groupName
+            destinationViewController.members = members
         }
     }
     
