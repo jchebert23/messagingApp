@@ -40,7 +40,7 @@ class messageDetailCell: UITableViewCell {
         var recipientData = Database.database().reference().child("Users").child(messageDetail.recipient)
         if(messageDetail._groupName != "" && messageDetail._groupName != nil)
         {
-            print("line 43")
+ 
         recipientData = Database.database().reference().child("Groups").child(messageDetail.recipient)
         }
         recipientData.observeSingleEvent(of: .value, with: {(snapshot) in
@@ -57,12 +57,12 @@ class messageDetailCell: UITableViewCell {
             }
 
             let userImg = NSURL(string: temp as! String)
-            print("user img: ")
+
             //gotta fix this
             
             
             var userImgString = data["prof-pic"]
-            print("userImgString: ")
+         
             if(data["prof-pic"] == nil)
             {
                 userImgString = "https://firebasestorage.googleapis.com/v0/b/plusonetest-2143.appspot.com/o/profile-pics%2Fdbooth?alt=media&token=23b1cd0f-980a-4a4b-9038-21387a27fcf5" as AnyObject

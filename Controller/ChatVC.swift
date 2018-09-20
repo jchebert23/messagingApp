@@ -31,8 +31,6 @@ class ChatVC: UIViewController, UITableViewDelegate, UITableViewDataSource {
     var messageId: String!
     
     override func viewDidLoad() {
-        print("currentUser")
-        print(currentUser)
         super.viewDidLoad()
         tableView.delegate = self
         tableView.dataSource = self

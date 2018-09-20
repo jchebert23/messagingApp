@@ -32,12 +32,7 @@ class MessagesCell: UITableViewCell {
 
     func configCell(message: Message){
         self.message = message
-        print("currentUser")
-        print(currentUser)
-        print("sender")
-        print(message.sender)
-        print("message")
-        print(message.message)
+
         //IMPORTANT, determines if current user sent the message or not, and from that information it puts it puts the message to the right or left of the cell
         if message.sender == currentUser{
             sentMessageView.isHidden = false
