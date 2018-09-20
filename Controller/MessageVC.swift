@@ -148,7 +148,7 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
         dismissKeyboard()
         
         if(messageField.text != nil && messageField.text != ""){
-            if messageId == nil {
+            
                 let post: Dictionary <String, AnyObject> = [
                     "message": messageField.text as AnyObject,
                     "sender": currentUser as AnyObject,
@@ -169,9 +169,9 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
                 ]
                 
                 //creating message id
-                
+                if messageId == nil {
                 messageId = Database.database().reference().child("messages").childByAutoId().key
-
+                }
                 //creating then tree under
                 let firebaseMessage = Database.database().reference().child("messages").child(messageId).childByAutoId()
                 
@@ -209,57 +209,8 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
                 userMessage.setValue(message)
                 
                 loadData()
-            }
-            //basically if this is not the first message between two people, it doesn't create a new message ID
-            else if messageId != ""{
-                let post: Dictionary <String, AnyObject> = [
-                    "message": messageField.text as AnyObject,
-                    "sender": currentUser as AnyObject,
-                    "group": recipient as AnyObject,
-                    "groupName": groupName as AnyObject
-                ]
-                
-                let message: Dictionary <String, AnyObject> = [
-                    "lastmessage": messageField.text as AnyObject,
-                    "recipient": recipient as AnyObject,
-                    "groupName": groupName as AnyObject
-                ]
-                
-                let recipientMessage2: Dictionary <String, AnyObject> = [
-                    "lastmessage": messageField.text as AnyObject,
-                    "recipient": recipient as AnyObject,
-                    "groupName": groupName as AnyObject
-                ]
-                //same thing as above but doesn't create a messageId (basically a conversation id)
-                
-                let firebaseMessage = Database.database().reference().child("messages").child(messageId).childByAutoId()
-                
-                firebaseMessage.setValue(post)
-                
-                if(members != [])
-                {
+            
 
-                    for member in members {
-                        if(member != currentUser)
-                        {
-
-                            let recipientMessage = Database.database().reference().child("Users").child(member).child("messages").child(messageId)
-                            recipientMessage.setValue(recipientMessage2)
-                        }
-                    }
-                }
-                else
-                {
-                let recipentMessage = Database.database().reference().child("Users").child(recipient).child("messages").child(messageId)
-                
-                recipentMessage.setValue(recipientMessage2)
-                }
-                let userMessage = Database.database().reference().child("Users").child(currentUser!).child("messages").child(messageId)
-                
-                userMessage.setValue(message)
-                
-                loadData()
-            }
             
             messageField.text = ""
         }

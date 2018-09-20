@@ -17,6 +17,7 @@ class MessageDetail{
     private var _messageRef: DatabaseReference!
     var _members = [String]()
     var _groupName: String!
+    var _lastMessage: String!
     var currentUser = KeychainWrapper.standard.string(forKey: "uid")
     
     var recipient: String{
@@ -34,6 +35,9 @@ class MessageDetail{
         return _groupName
     }
     
+    var lastMessage: String{
+        return _lastMessage
+    }
     
     init(recipient: String){
         _recipient=recipient
@@ -41,7 +45,9 @@ class MessageDetail{
     
     init(messageKey: String, messageData: Dictionary<String, AnyObject>){
         _messageKey = messageKey
-        
+        if let lastMessage = messageData["lastmessage"] as? String{
+            _lastMessage = lastMessage
+        }
         if let recipient = messageData["recipient"] as? String{
             _recipient = recipient
         }

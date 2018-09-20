@@ -36,6 +36,7 @@ class messageDetailCell: UITableViewCell {
 
     func configureCell(messageDetail: MessageDetail){
         self.messageDetail = messageDetail
+        self.chatPreview.text = messageDetail._lastMessage
         //this grabs information from recipient to get their profile picture
         var recipientData = Database.database().reference().child("Users").child(messageDetail.recipient)
         if(messageDetail._groupName != "" && messageDetail._groupName != nil)
@@ -43,6 +44,7 @@ class messageDetailCell: UITableViewCell {
  
         recipientData = Database.database().reference().child("Groups").child(messageDetail.recipient)
         }
+        
         recipientData.observeSingleEvent(of: .value, with: {(snapshot) in
             let data  = snapshot.value as! Dictionary<String, AnyObject>
             var username = data["username"]
@@ -61,6 +63,7 @@ class messageDetailCell: UITableViewCell {
             //gotta fix this
             
             
+            
             var userImgString = data["prof-pic"]
          
             if(data["prof-pic"] == nil)
@@ -70,11 +73,11 @@ class messageDetailCell: UITableViewCell {
             self.recipientname.text = username as? String
             let ref = Storage.storage().reference(forURL: userImgString as! String)
             URLSession.shared.dataTask(with: userImg! as URL)
-            ref.getData(maxSize: 100000, completion: { (data, error) in
+            ref.getData(maxSize: 2000000, completion: { (data, error) in
                 //not loading image since image exceeds maximum size
                 if error != nil{
 
-                    print("could not load image")
+                    print(error)
                 } else{
                     if let imgData = data {
                         if let img = data {
