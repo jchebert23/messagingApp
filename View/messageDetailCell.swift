@@ -36,11 +36,10 @@ class messageDetailCell: UITableViewCell {
 
     func configureCell(messageDetail: MessageDetail){
         self.messageDetail = messageDetail
-        //this grabs information from recipient to get their profile picture
+        //this grabs information from recipipient information
         var recipientData = Database.database().reference().child("Users").child(messageDetail.recipient)
         if(messageDetail._groupName != "" && messageDetail._groupName != nil)
         {
-            print("line 43")
         recipientData = Database.database().reference().child("Groups").child(messageDetail.recipient)
         }
         recipientData.observeSingleEvent(of: .value, with: {(snapshot) in

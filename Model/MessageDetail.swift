@@ -43,19 +43,21 @@ class MessageDetail{
         }
         
         if let groupName = messageData["groupName"] as? String{
+            NSLog("LINE NUMBER %d\n", #line)
             _groupName = groupName
         }
-        
+        else
+        {
+            _groupName = ""
+        }
+        NSLog("%s\n", _groupName)
+        //NSLog("GROUP NAME: %s, %d\n", _groupName, #line)
         if(_groupName != "" && _groupName != nil)
         {
         Database.database().reference().child("Groups").child(recipient).observe(.value , with: { (snapshot) in
             let value = snapshot.value as? NSDictionary
-            print(value)
-            
             print(value!.object(forKey: "members")!)
             self._members = ((value!.object(forKey: "members")!) as? [String])!
-            print("LINE 57")
-            print(self._members)
             }
             )
         }
