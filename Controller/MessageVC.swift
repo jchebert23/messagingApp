@@ -45,7 +45,11 @@ class MessageVC: UIViewController, UITableViewDelegate, UITableViewDataSource, U
         
         tableView.estimatedRowHeight = 300
         
-        
+        print("In message vc")
+        if(groupName == nil)
+        {
+            groupName = "no group name"
+        }
         //if the conversation existed in the past, load the data of the previous messages
         if messageId != "" && messageId != nil {
             loadData()

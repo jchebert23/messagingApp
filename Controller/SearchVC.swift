@@ -9,6 +9,7 @@
 import UIKit
 import Firebase
 import SwiftKeychainWrapper
+import Darwin
 
 class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
 
@@ -24,6 +25,7 @@ class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UI
     var recipient: String!
     var messageId: String!
     var debugPrint: Bool = false
+    var currentUser = KeychainWrapper.standard.string(forKey: "uid")
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -36,9 +38,20 @@ class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UI
         
         //grabbing list of users
         
-        Database.database().reference().child("Users").observe(.value , with: { (snapshot) in
+        var usersPreviousMessages = [String: AnyObject]()
         
+        Database.database().reference().child("Users").child(currentUser!).child("messages").observe(.value, with: { (snapshot) in
             
+            let value = snapshot.value as? [String: AnyObject]
+            usersPreviousMessages = value!
+            print("USERS PREVIOUS MESSAGES1")
+            print(usersPreviousMessages)
+            
+        })
+        
+        
+        
+        Database.database().reference().child("Users").observe(.value , with: { (snapshot) in
         let value = snapshot.value as? NSDictionary
 
                 self.searchDetail.removeAll()
@@ -46,8 +59,8 @@ class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UI
             
                 for data in value!{
                     let postDict: NSDictionary = data.value as! NSDictionary
-                        let key = data.key
-                        let post = Search(userKey: key as! String, postData: postDict as! Dictionary<String, AnyObject>)
+                    let key = data.key
+                    let post = Search(userKey: key as! String, postData: postDict as! Dictionary<String, AnyObject>, usersPreviousMessages: usersPreviousMessages)
                         self.searchDetail.append(post)
                 }
             
@@ -63,7 +76,7 @@ class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UI
 
                 let postDict: NSDictionary = data.value as! NSDictionary
                 let key = data.key
-                let post = Search(userKey: key as! String, postData: postDict as! Dictionary<String, AnyObject>)
+                let post = Search(userKey: key as! String, postData: postDict as! Dictionary<String, AnyObject>, usersPreviousMessages: usersPreviousMessages)
                 self.searchDetail.append(post)
             }
             
@@ -74,11 +87,15 @@ class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UI
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let destionViewController = segue.destination as? MessageVC {
+        if let destionViewController = segue.destination as? MessageVC{
+            
             destionViewController.recipient = recipient
             destionViewController.messageId = messageId
             destionViewController.members = members
+            print("Line 95 GROUP NAME")
+            print(groupName)
             destionViewController.groupName = groupName
+        
         }
     }
     
@@ -113,16 +130,24 @@ class SearchVC: UIViewController, UITableViewDelegate, UITableViewDataSource, UI
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        recipient = ""
         if isSearching {
             recipient = filteredDate[indexPath.row].userKey
             members = filteredDate[indexPath.row]._members
             groupName = filteredDate[indexPath.row]._groupName
+            messageId = filteredDate[indexPath.row]._previousMessageId
         }else{
             recipient = searchDetail[indexPath.row].userKey
             members = searchDetail[indexPath.row]._members
             groupName = searchDetail[indexPath.row]._groupName
+            messageId = searchDetail[indexPath.row]._previousMessageId
+            print("LINE 172 GroupName")
+            print(groupName)
         }
+        
+        
 
+        
         performSegue(withIdentifier: "toMessage", sender: nil)
     }
     

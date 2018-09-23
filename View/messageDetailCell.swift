@@ -39,7 +39,7 @@ class messageDetailCell: UITableViewCell {
         self.chatPreview.text = messageDetail._lastMessage
         //this grabs information from recipient to get their profile picture
         var recipientData = Database.database().reference().child("Users").child(messageDetail.recipient)
-        if(messageDetail._groupName != "" && messageDetail._groupName != nil)
+        if(messageDetail._groupName != "" && messageDetail._groupName != nil && messageDetail._groupName != "no group name")
         {
  
         recipientData = Database.database().reference().child("Groups").child(messageDetail.recipient)
@@ -48,7 +48,7 @@ class messageDetailCell: UITableViewCell {
         recipientData.observeSingleEvent(of: .value, with: {(snapshot) in
             let data  = snapshot.value as! Dictionary<String, AnyObject>
             var username = data["username"]
-            if(messageDetail._groupName != "" && messageDetail._groupName != nil)
+            if(messageDetail._groupName != "" && messageDetail._groupName != nil && messageDetail._groupName != "no group name")
             {
                 username = data["name"]
             }

@@ -15,12 +15,17 @@ import SwiftKeychainWrapper
 class Search {
     private var _username: String!
     private var _userImg: String!
+    var _previousMessageId: String!
     var _userKey: String!
     var _members : [String]
     var _groupName: String!
     private var _userRef: DatabaseReference!
     var debugPrint: Bool! = true
     var currentUser = KeychainWrapper.standard.string(forKey: "uid")
+    
+    var groupName: String{
+        return _groupName
+    }
     
     var username: String{
         return _username
@@ -40,15 +45,39 @@ class Search {
         _members = members
     }
     
-    init(userKey: String, postData: Dictionary<String, AnyObject>){
+    init(userKey: String, postData: Dictionary<String, AnyObject>, usersPreviousMessages: [String: AnyObject]){
         _userKey = userKey
+        for (mesId, mesInfo) in usersPreviousMessages
+        {
+            print("Message ID")
+            print(mesId)
+            print(mesInfo)
+            var newInfo = mesInfo as? Dictionary<String, String>
+            if(newInfo!["recipient"] == userKey)
+            {
+                print("HERE LINE 52")
+                _previousMessageId = mesId
+                break
+            }
+        }
+        
+    
+        
         if let username = postData["username"] as? String{
             _username = username
+            print("here in Search class")
+            _groupName = "no group name"
         }
             
         else if let username = postData["name"] as? String{
             _username = username
+            print("here in Search class2")
+            print(postData)
+            _groupName = username
         }
+        
+        print("USERNAME ASSOCIATED WITH SEARCH CELL")
+        print(_username)
         
         if let userImg = postData["prof-pic"] as? String {
             if(self.debugPrint){
@@ -72,12 +101,13 @@ class Search {
             _members = []
         }
         
-        if let groupName = postData["name"] as? String!{
+        if let groupName = postData["name"] as? String!
+        {
             _groupName = groupName
         }
         else
         {
-            _groupName = ""
+            _groupName = "no group name"
         }
         
         _userRef = Database.database().reference().child("messages").child(_userKey)

@@ -56,7 +56,7 @@ class MessageDetail{
             _groupName = groupName
         }
         
-        if(_groupName != "" && _groupName != nil)
+        if(_groupName != "" && _groupName != nil && _groupName != "no group name")
         {
         Database.database().reference().child("Groups").child(recipient).observe(.value , with: { (snapshot) in
             let value = snapshot.value as? NSDictionary
